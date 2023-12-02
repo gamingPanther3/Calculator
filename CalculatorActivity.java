@@ -18,6 +18,7 @@ public class CalculatorActivity {
         mainActivity = activity;
     }
     private static final MathContext MC = new MathContext(Integer.MAX_VALUE);
+    private static final MathContext DIVIDEMC = new MathContext(10);
     public static final String ROOT = "√";
     public static BigDecimal applyOperator(final BigDecimal operand1, final BigDecimal operand2, final String operator) {
         switch (operator) {
@@ -29,21 +30,40 @@ public class CalculatorActivity {
                 return operand1.multiply(operand2);
             case "/":
                 if (operand2.compareTo(BigDecimal.ZERO) == 0) {
-                    return new BigDecimal("Infinite");
+                    return new BigDecimal("Unendlich");
                 } else {
-                    return operand1.divide(operand2, MC);
+                    return operand1.divide(operand2, DIVIDEMC);
                 }
             case ROOT:
                 if (operand2.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new IllegalArgumentException("Only real numbers");
+                    throw new IllegalArgumentException("Nur reelle Zahlen");
                 } else {
                     return new BigDecimal(Math.sqrt(operand2.doubleValue()));
                 }
+            case "!":
+                return factorial(operand1);
             case "^":
                 return pow(operand1, operand2);
             default:
-                throw new IllegalArgumentException("Unknown operator: " + operator);
+                throw new IllegalArgumentException("Unbekannter Operator: " + operator);
         }
+    }
+    public static BigDecimal factorial(BigDecimal number) {
+        if (number.compareTo(BigDecimal.ZERO) < 0) {
+            number = number.negate();
+        }
+        if (number.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalArgumentException("Domainfehler");
+        }
+        BigDecimal result = BigDecimal.ONE;
+        while (number.compareTo(BigDecimal.ONE) > 0) {
+            result = result.multiply(number);
+            number = number.subtract(BigDecimal.ONE);
+        }
+        return result;
+    }
+    public static boolean isFactorial(final String token) {
+        return token.endsWith("!");
     }
     public static String calculate(final String calc) {
         try {
@@ -65,29 +85,29 @@ public class CalculatorActivity {
             final List<String> tokens = tokenize(expression);
             for (int i = 0; i < tokens.size() - 1; i++) {
                 if (tokens.get(i).equals("/") && Double.parseDouble(tokens.get(i + 1)) <= 0) {
-                    return "Infinite";
+                    return "Unendlich";
                 }
             }
             final BigDecimal result = evaluate(tokens);
             double resultDouble = result.doubleValue();
             if (Double.isInfinite(resultDouble)) {
-                return "Value too large";
+                return "Wert zu groß";
             }
             if (result.compareTo(new BigDecimal("1000000000000000000")) >= 0) {
-                return String.format(Locale.GERMANY, "%.8e", result);
+                return String.format(Locale.GERMANY, "%.10e", result);
             } else {
                 return result.stripTrailingZeros().toPlainString().replace('.', ',');
             }
         } catch (ArithmeticException e) {
             if (e.getMessage().equals("Wert zu groß")) {
-                return "Value too large";
+                return "Wert zu groß";
             } else {
                 return e.getMessage();
             }
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         } catch (Exception e) {
-            return "Syntax error";
+            return "Syntax Fehler";
         }
     }
     public static boolean isScientificNotation(final String str) {
@@ -124,7 +144,7 @@ public class CalculatorActivity {
         double exponentDouble = exponent.doubleValue();
         double resultDouble = Math.pow(baseDouble, exponentDouble);
         if (Double.isInfinite(resultDouble)) {
-            throw new ArithmeticException("Value too large");
+            throw new ArithmeticException("Wert zu groß");
         }
         return new BigDecimal(resultDouble, MC);
     }
@@ -138,21 +158,27 @@ public class CalculatorActivity {
             if (isNumber(token)) {
                 stack.add(new BigDecimal(token));
             } else if (isOperator(token)) {
-                final BigDecimal operand2 = stack.remove(stack.size() - 1);
-                if (!token.equals(ROOT)) {
+                if (token.equals("!")) {
                     final BigDecimal operand1 = stack.remove(stack.size() - 1);
-                    final BigDecimal result = applyOperator(operand1, operand2, token);
+                    final BigDecimal result = applyOperator(operand1, BigDecimal.ZERO, token);
                     stack.add(result);
                 } else {
-                    final BigDecimal operand2SquareRoot = applyOperator(BigDecimal.ZERO, operand2, ROOT);
-                    stack.add(operand2SquareRoot);
+                    final BigDecimal operand2 = stack.remove(stack.size() - 1);
+                    if (!token.equals(ROOT)) {
+                        final BigDecimal operand1 = stack.remove(stack.size() - 1);
+                        final BigDecimal result = applyOperator(operand1, operand2, token);
+                        stack.add(result);
+                    } else {
+                        final BigDecimal operand2SquareRoot = applyOperator(BigDecimal.ZERO, operand2, ROOT);
+                        stack.add(operand2SquareRoot);
+                    }
                 }
             } else {
-                throw new IllegalArgumentException("Syntax error");
+                throw new IllegalArgumentException("Syntax Fehler");
             }
         }
         if (stack.size() != 1) {
-            throw new IllegalArgumentException("Syntax error");
+            throw new IllegalArgumentException("Syntax Fehler");
         }
 
         return stack.get(0);
@@ -193,7 +219,7 @@ public class CalculatorActivity {
         }
     }
     public static boolean isOperator(final String token) {
-        return token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/") || token.equals("^") || token.equals("√");
+        return token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/") || token.equals("^") || token.equals("√") || token.equals("!");
     }
     public static int precedence(final String operator) {
         if (operator.equals("(")) {
@@ -206,8 +232,10 @@ public class CalculatorActivity {
             return 3;
         } else if (operator.equals("√")) {
             return 4;
+        } else if (operator.equals("!")) {
+            return 5;
         } else {
-            throw new IllegalArgumentException("Unknown operator: " + operator);
+            throw new IllegalArgumentException("Unbekannter Operator: " + operator);
         }
     }
     public static List<String> tokenize(final String expression) {
@@ -217,7 +245,7 @@ public class CalculatorActivity {
             final char c = expression.charAt(i);
             if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || !Character.isDigit(expression.charAt(i - 1))))) {
                 currentToken.append(c);
-            } else if (c == '+' || c == '*' || c == '/' || c == '-' || c == '^' || c == '√' || c == '(' || c == ')') {
+            } else if (c == '+' || c == '*' || c == '/' || c == '-' || c == '^' || c == '√' || c == '(' || c == ')' || c == '!') {
                 if (currentToken.length() > 0) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
