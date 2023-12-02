@@ -29,20 +29,20 @@ public class CalculatorActivity {
                 return operand1.multiply(operand2);
             case "/":
                 if (operand2.compareTo(BigDecimal.ZERO) == 0) {
-                    return new BigDecimal("Unendlich");
+                    return new BigDecimal("Infinite");
                 } else {
                     return operand1.divide(operand2, MC);
                 }
             case ROOT:
                 if (operand2.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new IllegalArgumentException("Nur reelle Zahlen");
+                    throw new IllegalArgumentException("Only real numbers");
                 } else {
                     return new BigDecimal(Math.sqrt(operand2.doubleValue()));
                 }
             case "^":
                 return pow(operand1, operand2);
             default:
-                throw new IllegalArgumentException("Unbekannter Operator: " + operator);
+                throw new IllegalArgumentException("Unknown operator: " + operator);
         }
     }
     public static String calculate(final String calc) {
@@ -65,13 +65,13 @@ public class CalculatorActivity {
             final List<String> tokens = tokenize(expression);
             for (int i = 0; i < tokens.size() - 1; i++) {
                 if (tokens.get(i).equals("/") && Double.parseDouble(tokens.get(i + 1)) <= 0) {
-                    return "Unendlich";
+                    return "Infinite";
                 }
             }
             final BigDecimal result = evaluate(tokens);
             double resultDouble = result.doubleValue();
             if (Double.isInfinite(resultDouble)) {
-                return "Wert zu groß";
+                return "Value too large";
             }
             if (result.compareTo(new BigDecimal("1000000000000000000")) >= 0) {
                 return String.format(Locale.GERMANY, "%.8e", result);
@@ -80,14 +80,14 @@ public class CalculatorActivity {
             }
         } catch (ArithmeticException e) {
             if (e.getMessage().equals("Wert zu groß")) {
-                return "Wert zu groß";
+                return "Value too large";
             } else {
                 return e.getMessage();
             }
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         } catch (Exception e) {
-            return "Syntax Fehler";
+            return "Syntax error";
         }
     }
     public static boolean isScientificNotation(final String str) {
@@ -124,7 +124,7 @@ public class CalculatorActivity {
         double exponentDouble = exponent.doubleValue();
         double resultDouble = Math.pow(baseDouble, exponentDouble);
         if (Double.isInfinite(resultDouble)) {
-            throw new ArithmeticException("Wert zu groß");
+            throw new ArithmeticException("Value too large");
         }
         return new BigDecimal(resultDouble, MC);
     }
@@ -148,11 +148,11 @@ public class CalculatorActivity {
                     stack.add(operand2SquareRoot);
                 }
             } else {
-                throw new IllegalArgumentException("Syntax Fehler");
+                throw new IllegalArgumentException("Syntax error");
             }
         }
         if (stack.size() != 1) {
-            throw new IllegalArgumentException("Syntax Fehler");
+            throw new IllegalArgumentException("Syntax error");
         }
 
         return stack.get(0);
@@ -207,7 +207,7 @@ public class CalculatorActivity {
         } else if (operator.equals("√")) {
             return 4;
         } else {
-            throw new IllegalArgumentException("Unbekannter Operator: " + operator);
+            throw new IllegalArgumentException("Unknown operator: " + operator);
         }
     }
     public static List<String> tokenize(final String expression) {
