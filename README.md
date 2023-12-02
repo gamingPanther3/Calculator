@@ -3,21 +3,33 @@
 The calculator can perform the following operations:
 
 Addition (+)
+
 Subtraction (-)
+
 Multiplication (*)
+
 Division (/)
+
 Exponentiation (^)
+
 Square root (√)
+
 The calculator can also handle scientific notation.
 
 Here are some examples of how to use the calculator:
 
 To add 2 and 3, enter 2+3.
+
 To subtract 5 from 10, enter 10-5.
+
 To multiply 4 by 6, enter 4*6.
+
 To divide 12 by 3, enter 12/3.
+
 To square 4, enter 4^2.
+
 To find the square root of 16, enter √(16).
+
 The calculator will automatically convert scientific notation to decimal notation when calculating results.
 
 Here are some examples of how to use scientific notation with the calculator:
