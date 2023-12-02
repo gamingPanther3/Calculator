@@ -1,7 +1,7 @@
 # Calculator
 
 The calculator can perform the following operations:
-Addition (+)\n
+Addition (+)
 Subtraction (-)
 Multiplication (*)
 Division (/)
