@@ -1,6 +1,6 @@
 # Calculator
 
-The calculator can perform the following operations:
+This calculator can perform the following operations:
 - Addition (+)
 - Subtraction (-)
 - Multiplication (*)
@@ -11,7 +11,7 @@ The calculator can perform the following operations:
 
 The calculator can also handle scientific notation.
 
-Here are some examples of how to use the calculator:
+## Examples of how to use the calculator:
 - To add 2 and 3, enter `2+3`.
 - To subtract 5 from 10, enter `10-5`.
 - To multiply 4 by 6, enter `4*6`.
@@ -20,11 +20,14 @@ Here are some examples of how to use the calculator:
 - To find the square root of 16, enter `√(16)`.
 - To calculate the factorial of 5, enter `5!`.
 
-The calculator will automatically convert scientific notation to decimal notation when calculating results.
+The calculator automatically converts scientific notation to decimal notation when calculating results.
 
-Here are some examples of how to use scientific notation with the calculator:
-
+## Examples of how to use scientific notation with the calculator:
 - To enter 6.022 x 10^23, enter `6.022e23`.
 - To enter 2.718 x 10^-5, enter `2.718e-5`.
 
 The calculator will also display results in scientific notation if the result is very large or very small.
+
+## Usage:
+- Use `CalculatorActivity.calculate(x)` to perform a calculation.
+- Replace `x` with the math problem. The problem must be specified in a string and can contain more than two different or identical numbers or operators.
