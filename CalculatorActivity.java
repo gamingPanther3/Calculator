@@ -106,7 +106,7 @@ public class CalculatorActivity {
         }
         // Check if the number is an integer. If not, throw an exception
         if (number.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalArgumentException("Domain error");
+            throw new IllegalArgumentException("Domainfehler");
         }
         // Initialize the result as 1
         BigDecimal result = BigDecimal.ONE;
@@ -168,9 +168,9 @@ public class CalculatorActivity {
             }
             final BigDecimal result = evaluate(tokens);
             double resultDouble = result.doubleValue();
-            // If the result is too large, return "Value too large"
+            // If the result is too large, return "Wert zu groß"
             if (Double.isInfinite(resultDouble)) {
-                return "Value too large";
+                return "Wert zu groß";
             }
             // If the result is larger than a certain threshold, return it in scientific notation
             if (result.compareTo(new BigDecimal("1000000000000000000")) >= 0) {
@@ -181,8 +181,8 @@ public class CalculatorActivity {
             }
         } catch (ArithmeticException e) {
             // Handle exceptions related to arithmetic errors
-            if (e.getMessage().equals("Value too large")) {
-                return "Value too large";
+            if (e.getMessage().equals("Wert zu groß")) {
+                return "Wert zu groß";
             } else {
                 return e.getMessage();
             }
@@ -191,7 +191,7 @@ public class CalculatorActivity {
             return e.getMessage();
         } catch (Exception e) {
             // Handle all other exceptions
-            return "Syntax error";
+            return "Syntax Fehler";
         }
     }
 
@@ -225,7 +225,8 @@ public class CalculatorActivity {
      * This method converts a string in scientific notation to decimal notation.
      *
      * @param str The string in scientific notation to be converted.
-     * @return The string in decimal notation.
+     * @return The string in decimal notation. If the exponent part of the scientific notation is greater than 1000, an IllegalArgumentException is thrown with the message "Wert zu groß".
+     * @throws IllegalArgumentException if the exponent part of the scientific notation is greater than 1000.
      */
     public static String convertScientificToDecimal(final String str) {
         // The input string is formatted by replacing all commas with dots. This is because in some locales, a comma is used as the decimal separator.
@@ -253,15 +254,16 @@ public class CalculatorActivity {
 
             // The number part and the exponent part are converted to BigDecimal and integer respectively
             final int exponent = Integer.parseInt(exponentPart);
+
+            // Check if exponent is greater than 1000 then return "Wert zu groß"
+            if (exponent > 1000) {
+                throw new IllegalArgumentException("Wert zu groß");
+            }
+
             final BigDecimal number = new BigDecimal(numberPart);
 
             // The number is scaled by the power of ten of the exponent
             final BigDecimal scaledNumber = number.scaleByPowerOfTen(exponent);
-
-            // Check if the value is too large for a Long
-            if (scaledNumber.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) > 0) {
-                throw new NumberFormatException("Wert zu groß");
-            }
 
             // The match in the input string is replaced with the scaled number
             matcher.appendReplacement(sb, scaledNumber.toPlainString());
@@ -290,11 +292,13 @@ public class CalculatorActivity {
      * This method calculates the power of a base number to an exponent.
      * It first converts the base and exponent to double values, then uses the Math.pow method to calculate the power.
      * If the result is infinite (which can happen if the base and exponent are too large), it throws an ArithmeticException.
+     * If the result is not a valid number format, it throws a NumberFormatException.
      *
      * @param base The base number.
      * @param exponent The exponent.
      * @return The result of raising the base to the power of the exponent.
      * @throws ArithmeticException If the result is too large to be represented as a double.
+     * @throws NumberFormatException If the result is not a valid number format.
      */
     public static BigDecimal pow(BigDecimal base, BigDecimal exponent) {
         // Convert the base and exponent to double values
@@ -306,11 +310,15 @@ public class CalculatorActivity {
 
         // If the result is too large to be represented as a double, throw an exception
         if (Double.isInfinite(resultDouble)) {
-            throw new ArithmeticException("Value too large");
+            throw new ArithmeticException("Wert zu groß");
         }
 
         // Convert the result back to a BigDecimal and return it
-        return new BigDecimal(resultDouble, DIVIDEMC).stripTrailingZeros();
+        try {
+            return new BigDecimal(resultDouble, DIVIDEMC).stripTrailingZeros();
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Ungültiges Zahlenformat");
+        }
     }
 
     /**
@@ -374,12 +382,12 @@ public class CalculatorActivity {
             }
             // If the token is neither a number nor an operator, throw an exception
             else {
-                throw new IllegalArgumentException("Syntax error");
+                throw new IllegalArgumentException("Syntax Fehler");
             }
         }
         // If there is more than one number in the stack at the end, throw an exception
         if (stack.size() != 1) {
-            throw new IllegalArgumentException("Syntax error");
+            throw new IllegalArgumentException("Syntax Fehler");
         }
 
         // Return the result
