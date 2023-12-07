@@ -1,10 +1,13 @@
 package com.mlprograms.rechenmax;
 
+import android.annotation.SuppressLint;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,6 +21,7 @@ import java.util.regex.Pattern;
 
 public class CalculatorActivity {
     // Declaration of a static variable of type MainActivity. This variable is used to access the methods and variables of the MainActivity class.
+    @SuppressLint("StaticFieldLeak")
     private static MainActivity mainActivity;
 
     // Method to set the MainActivity. This method is used to initialize the static variable mainActivity.
@@ -25,119 +29,30 @@ public class CalculatorActivity {
         mainActivity = activity;
     }
 
-    // Declaration of a constant of type MathContext with maximum precision. This is used for mathematical operations that require high precision.
-    private static final MathContext MC = new MathContext(Integer.MAX_VALUE);
-
     // Declaration of a constant of type MathContext with a precision of 10. This is used for division to ensure a precision of 10 decimal places.
-    private static final MathContext DIVIDEMC = new MathContext(10);
+    private static final MathContext MC = new MathContext(10);
 
     // Declaration of a constant for the root operation.
     public static final String ROOT = "√";
 
     /**
-     * This method applies an operator to two operands. The operands and the operator are passed as parameters.
-     * It supports the following operations: addition, subtraction, multiplication, division, square root, factorial, and power.
-     *
-     * For each operation, it checks the operator and performs the corresponding operation.
-     *
-     * For division, it checks if the second operand is zero to avoid division by zero. If it is, it returns "Unendlich" (Infinity).
-     *
-     * For the square root operation, it checks if the second operand is negative as the root of a negative number is not defined. If it is, it throws an exception.
-     *
-     * If the operator is not recognized, it throws an exception.
-     *
-     * @param operand1 The first operand for the operation.
-     * @param operand2 The second operand for the operation.
-     * @param operator The operator for the operation.
-     * @return The result of the operation.
-     * @throws IllegalArgumentException If the operator is not recognized or if the second operand for the square root operation is negative.
-     */
-    public static BigDecimal applyOperator(final BigDecimal operand1, final BigDecimal operand2, final String operator) {
-        switch (operator) {
-            case "+": // Case for addition
-                return operand1.add(operand2);
-            case "-": // Case for subtraction
-                return operand1.subtract(operand2);
-            case "*": // Case for multiplication
-                return operand1.multiply(operand2);
-            case "/": // Case for division
-                if (operand2.compareTo(BigDecimal.ZERO) == 0) { // Check if the second operand is zero to avoid division by zero
-                    return new BigDecimal("Unendlich"); // Return "Infinity" if the second operand is zero
-                } else {
-                    return operand1.divide(operand2, DIVIDEMC); // Perform the division if the second operand is not zero
-                }
-            case ROOT: // Case for the root operation
-                if (operand2.compareTo(BigDecimal.ZERO) < 0) { // Check if the second operand is negative as the root of a negative number is not defined
-                    throw new IllegalArgumentException("Nur reelle Zalen"); // Throw exception if the second operand is negative
-                } else {
-                    return new BigDecimal(Math.sqrt(operand2.doubleValue())); // Calculate the square root if the second operand is not negative
-                }
-            case "!": // Case for factorial
-                return factorial(operand1);
-            case "^": // Case for power
-                return pow(operand1, operand2);
-            default: // Default case when the operator is not recognized
-                throw new IllegalArgumentException("Unbekannter Operator: " + operator); // Throw exception when the operator is not recognized
-        }
-    }
-
-    /**
-     * This method calculates the factorial of a number. The factorial of a number is the product of all positive integers less than or equal to the number.
-     * For example, the factorial of 5 (denoted as 5!) is 1*2*3*4*5 = 120.
-     *
-     * The method takes a BigDecimal number as input. It first checks if the number is negative. If it is, the number is made positive for the calculation.
-     * Then it checks if the number is a whole number because factorial is only defined for whole numbers.
-     *
-     * It initializes the result to 1. This will hold the calculated factorial.
-     * It calculates the factorial by multiplying the number with the result and then decrementing the number, until the number is greater than 1.
-     *
-     * If the original number was negative, the result is negated. Otherwise, the result is returned as is.
-     *
-     * @param number The number for which the factorial is to be calculated.
-     * @return The factorial of the number.
-     * @throws IllegalArgumentException If the number is not a whole number.
-     */
-    public static BigDecimal factorial(BigDecimal number) {
-        // Check if the number is negative
-        boolean isNegative = number.compareTo(BigDecimal.ZERO) < 0;
-        // If the number is negative, convert it to positive
-        if (isNegative) {
-            number = number.negate();
-        }
-        // Check if the number is an integer. If not, throw an exception
-        if (number.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalArgumentException("Domainfehler");
-        }
-        // Initialize the result as 1
-        BigDecimal result = BigDecimal.ONE;
-        // Calculate the factorial of the number
-        while (number.compareTo(BigDecimal.ONE) > 0) {
-            result = result.multiply(number);
-            number = number.subtract(BigDecimal.ONE);
-        }
-        // If the original number was negative, return the negative of the result. Otherwise, return the result.
-        return isNegative ? result.negate() : result;
-    }
-
-    /**
      * This method calculates the result of a mathematical expression. The expression is passed as a string parameter.
-     *
+     * <p>
      * It first replaces all the special characters in the expression with their corresponding mathematical symbols.
-     *
+     * <p>
      * If the expression is in scientific notation, it converts it to decimal notation.
-     *
+     * <p>
      * It then tokenizes the expression and evaluates it.
-     *
+     * <p>
      * If the result is too large, it returns "Wert zu groß" (Value too large).
      * If the result is in scientific notation, it formats it to decimal notation.
-     *
+     * <p>
      * It handles various exceptions such as ArithmeticException, IllegalArgumentException, and other exceptions.
      *
-     * @param calc The mathematical expression to be calculated.
+     * @param calc The mathematical expression as a string to be calculated.
      * @return The result of the calculation as a string.
      * @throws ArithmeticException If there is an arithmetic error in the calculation.
      * @throws IllegalArgumentException If there is an illegal argument in the calculation.
-     * @throws Exception If there is a syntax error in the calculation.
      */
     public static String calculate(final String calc) {
         try {
@@ -181,7 +96,7 @@ public class CalculatorActivity {
             }
         } catch (ArithmeticException e) {
             // Handle exceptions related to arithmetic errors
-            if (e.getMessage().equals("Wert zu groß")) {
+            if (Objects.equals(e.getMessage(), "Wert zu groß")) {
                 return "Wert zu groß";
             } else {
                 return e.getMessage();
@@ -253,6 +168,7 @@ public class CalculatorActivity {
             }
 
             // The number part and the exponent part are converted to BigDecimal and integer respectively
+            assert exponentPart != null;
             final int exponent = Integer.parseInt(exponentPart);
 
             // Check if exponent is greater than 1000 then return "Wert zu groß"
@@ -289,6 +205,152 @@ public class CalculatorActivity {
     }
 
     /**
+     * This method tokenizes a mathematical expression.
+     * Tokenization is the process of breaking up a sequence of strings into pieces such as words, keywords, phrases, symbols and other elements, which are called tokens.
+     *
+     * @param expression The mathematical expression to be tokenized.
+     * @return The tokenized expression as a list of tokens.
+     */
+    public static List<String> tokenize(final String expression) {
+        // Create a list to store the tokens
+        final List<String> tokens = new ArrayList<>();
+        // Create a StringBuilder to build the current token
+        final StringBuilder currentToken = new StringBuilder();
+
+        // Iterate through each character in the expression
+        for (int i = 0; i < expression.length(); i++) {
+            final char c = expression.charAt(i);
+
+            // If the character is a digit, a decimal point, or a negative sign not preceded by a digit, append it to the current token
+            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || !Character.isDigit(expression.charAt(i - 1))))) {
+                currentToken.append(c);
+            }
+            // If the character is an operator or a parenthesis, add the current token to the list (if it's not empty), clear the current token, and add the operator or parenthesis to the list
+            else if (c == '+' || c == '*' || c == '/' || c == '-' || c == '^' || c == '√' || c == '(' || c == ')' || c == '!') {
+                if (currentToken.length() > 0) {
+                    tokens.add(currentToken.toString());
+                    currentToken.setLength(0);
+                }
+                tokens.add(Character.toString(c));
+            }
+            // If the character is a space, add the current token to the list (if it's not empty) and clear the current token
+            else if (c == ' ') {
+                if (currentToken.length() > 0) {
+                    tokens.add(currentToken.toString());
+                    currentToken.setLength(0);
+                }
+            }
+        }
+        // If there's a current token left at the end, add it to the list
+        if (currentToken.length() > 0) {
+            tokens.add(currentToken.toString());
+        }
+
+        // Return the list of tokens
+        return tokens;
+    }
+
+    /**
+     * This method evaluates a mathematical expression represented as a list of tokens.
+     * It first converts the expression from infix notation to postfix notation, then evaluates the postfix expression.
+     *
+     * @param tokens The mathematical expression in infix notation.
+     * @return The result of the expression.
+     */
+    public static BigDecimal evaluate(final List<String> tokens) {
+        // Convert the infix expression to postfix
+        final List<String> postfixTokens = infixToPostfix(tokens);
+
+        // Evaluate the postfix expression and return the result
+        return evaluatePostfix(postfixTokens);
+    }
+
+    /**
+     * This method applies an operator to two operands. The operands and the operator are passed as parameters.
+     * It supports the following operations: addition, subtraction, multiplication, division, square root, factorial, and power.
+     * <p>
+     * For each operation, it checks the operator and performs the corresponding operation.
+     * <p>
+     * For division, it checks if the second operand is zero to avoid division by zero. If it is, it returns "Unendlich" (Infinity).
+     * <p>
+     * For the square root operation, it checks if the second operand is negative as the root of a negative number is not defined. If it is, it throws an exception.
+     * <p>
+     * If the operator is not recognized, it throws an exception.
+     *
+     * @param operand1 The first operand for the operation.
+     * @param operand2 The second operand for the operation.
+     * @param operator The operator for the operation.
+     * @return The result of the operation.
+     * @throws IllegalArgumentException If the operator is not recognized or if the second operand for the square root operation is negative.
+     */
+    public static BigDecimal applyOperator(final BigDecimal operand1, final BigDecimal operand2, final String operator) {
+        switch (operator) {
+            case "+": // Case for addition
+                return operand1.add(operand2);
+            case "-": // Case for subtraction
+                return operand1.subtract(operand2);
+            case "*": // Case for multiplication
+                return operand1.multiply(operand2);
+            case "/": // Case for division
+                if (operand2.compareTo(BigDecimal.ZERO) == 0) { // Check if the second operand is zero to avoid division by zero
+                    return new BigDecimal("Unendlich"); // Return "Infinity" if the second operand is zero
+                } else {
+                    return operand1.divide(operand2, MC); // Perform the division if the second operand is not zero
+                }
+            case ROOT: // Case for the root operation
+                if (operand2.compareTo(BigDecimal.ZERO) < 0) { // Check if the second operand is negative as the root of a negative number is not defined
+                    throw new IllegalArgumentException("Nur reelle Zahlen"); // Throw exception if the second operand is negative
+                } else {
+                    return BigDecimal.valueOf(Math.sqrt(operand2.doubleValue())); // Calculate the square root if the second operand is not negative
+                }
+            case "!": // Case for factorial
+                return factorial(operand1);
+            case "^": // Case for power
+                return pow(operand1, operand2);
+            default: // Default case when the operator is not recognized
+                throw new IllegalArgumentException("Unbekannter Operator: " + operator); // Throw exception when the operator is not recognized
+        }
+    }
+
+    /**
+     * This method calculates the factorial of a number. The factorial of a number is the product of all positive integers less than or equal to the number.
+     * For example, the factorial of 5 (denoted as 5!) is 1*2*3*4*5 = 120.
+     * <p>
+     * The method takes a BigDecimal number as input. It first checks if the number is negative. If it is, the number is made positive for the calculation.
+     * Then it checks if the number is a whole number because factorial is only defined for whole numbers.
+     * <p>
+     * It initializes the result to 1. This will hold the calculated factorial.
+     * It calculates the factorial by multiplying the number with the result and then decrementing the number, until the number is greater than 1.
+     * <p>
+     * If the original number was negative, the result is negated. Otherwise, the result is returned as is.
+     *
+     * @param number The number for which the factorial is to be calculated.
+     * @return The factorial of the number.
+     * @throws IllegalArgumentException If the number is not a whole number.
+     */
+    public static BigDecimal factorial(BigDecimal number) {
+        // Check if the number is negative
+        boolean isNegative = number.compareTo(BigDecimal.ZERO) < 0;
+        // If the number is negative, convert it to positive
+        if (isNegative) {
+            number = number.negate();
+        }
+        // Check if the number is an integer. If not, throw an exception
+        if (number.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalArgumentException("Domainfehler");
+        }
+        // Initialize the result as 1
+        BigDecimal result = BigDecimal.ONE;
+        // Calculate the factorial of the number
+        while (number.compareTo(BigDecimal.ONE) > 0) {
+            result = result.multiply(number);
+            number = number.subtract(BigDecimal.ONE);
+        }
+        // If the original number was negative, return the negative of the result. Otherwise, return the result.
+        return isNegative ? result.negate() : result;
+    }
+
+    /**
      * This method calculates the power of a base number to an exponent.
      * It first converts the base and exponent to double values, then uses the Math.pow method to calculate the power.
      * If the result is infinite (which can happen if the base and exponent are too large), it throws an ArithmeticException.
@@ -315,25 +377,10 @@ public class CalculatorActivity {
 
         // Convert the result back to a BigDecimal and return it
         try {
-            return new BigDecimal(resultDouble, DIVIDEMC).stripTrailingZeros();
+            return new BigDecimal(resultDouble, MC).stripTrailingZeros();
         } catch (NumberFormatException e) {
             throw new NumberFormatException("Ungültiges Zahlenformat");
         }
-    }
-
-    /**
-     * This method evaluates a mathematical expression represented as a list of tokens.
-     * It first converts the expression from infix notation to postfix notation, then evaluates the postfix expression.
-     *
-     * @param tokens The mathematical expression in infix notation.
-     * @return The result of the expression.
-     */
-    public static BigDecimal evaluate(final List<String> tokens) {
-        // Convert the infix expression to postfix
-        final List<String> postfixTokens = infixToPostfix(tokens);
-
-        // Evaluate the postfix expression and return the result
-        return evaluatePostfix(postfixTokens);
     }
 
     /**
@@ -487,78 +534,35 @@ public class CalculatorActivity {
      */
     public static int precedence(final String operator) {
         // If the operator is an opening parenthesis, return 0
-        if (operator.equals("(")) {
-            return 0;
-        }
-        // If the operator is addition or subtraction, return 1
-        else if (operator.equals("+") || operator.equals("-")) {
-            return 1;
-        }
-        // If the operator is multiplication or division, return 2
-        else if (operator.equals("*") || operator.equals("/")) {
-            return 2;
-        }
-        // If the operator is exponentiation, return 3
-        else if (operator.equals("^")) {
-            return 3;
-        }
-        // If the operator is square root, return 4
-        else if (operator.equals("√")) {
-            return 4;
-        }
-        // If the operator is factorial, return 5
-        else if (operator.equals("!")) {
-            return 5;
-        }
-        // If the operator is not recognized, throw an exception
-        else {
-            throw new IllegalArgumentException("Unknown operator: " + operator);
-        }
-    }
+        switch (operator) {
+            case "(":
+                return 0;
 
-    /**
-     * This method tokenizes a mathematical expression.
-     * Tokenization is the process of breaking up a sequence of strings into pieces such as words, keywords, phrases, symbols and other elements, which are called tokens.
-     *
-     * @param expression The mathematical expression to be tokenized.
-     * @return The tokenized expression as a list of tokens.
-     */
-    public static List<String> tokenize(final String expression) {
-        // Create a list to store the tokens
-        final List<String> tokens = new ArrayList<>();
-        // Create a StringBuilder to build the current token
-        final StringBuilder currentToken = new StringBuilder();
+            // If the operator is addition or subtraction, return 1
+            case "+":
+            case "-":
+                return 1;
 
-        // Iterate through each character in the expression
-        for (int i = 0; i < expression.length(); i++) {
-            final char c = expression.charAt(i);
+            // If the operator is multiplication or division, return 2
+            case "*":
+            case "/":
+                return 2;
 
-            // If the character is a digit, a decimal point, or a negative sign not preceded by a digit, append it to the current token
-            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || !Character.isDigit(expression.charAt(i - 1))))) {
-                currentToken.append(c);
-            }
-            // If the character is an operator or a parenthesis, add the current token to the list (if it's not empty), clear the current token, and add the operator or parenthesis to the list
-            else if (c == '+' || c == '*' || c == '/' || c == '-' || c == '^' || c == '√' || c == '(' || c == ')' || c == '!') {
-                if (currentToken.length() > 0) {
-                    tokens.add(currentToken.toString());
-                    currentToken.setLength(0);
-                }
-                tokens.add(Character.toString(c));
-            }
-            // If the character is a space, add the current token to the list (if it's not empty) and clear the current token
-            else if (c == ' ') {
-                if (currentToken.length() > 0) {
-                    tokens.add(currentToken.toString());
-                    currentToken.setLength(0);
-                }
-            }
+            // If the operator is exponentiation, return 3
+            case "^":
+                return 3;
+
+            // If the operator is square root, return 4
+            case "√":
+                return 4;
+
+            // If the operator is factorial, return 5
+            case "!":
+                return 5;
+
+            // If the operator is not recognized, throw an exception
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + operator);
         }
-        // If there's a current token left at the end, add it to the list
-        if (currentToken.length() > 0) {
-            tokens.add(currentToken.toString());
-        }
-
-        // Return the list of tokens
-        return tokens;
     }
 }
