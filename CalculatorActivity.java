@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 /**
  * CalculatorActivity
  * @author Max Lemberg
- * @version 1.5.0
- * @date 03.12.2023
+ * @version 1.6.4
+ * @date 19.12.2023
  */
 
 public class CalculatorActivity {
@@ -77,8 +77,12 @@ public class CalculatorActivity {
             final List<String> tokens = tokenize(expression);
             for (int i = 0; i < tokens.size() - 1; i++) {
                 // If the expression contains division by zero, return "Infinity"
-                if (tokens.get(i).equals("/") && Double.parseDouble(tokens.get(i + 1)) <= 0) {
-                    return "Infinity";
+                try {
+                    if (tokens.get(i).equals("/") && Double.parseDouble(tokens.get(i + 1)) <= 0) {
+                        return "Unendlich";
+                    }
+                } catch (Exception e) {
+                    // do nothing
                 }
             }
             final BigDecimal result = evaluate(tokens);
@@ -106,6 +110,7 @@ public class CalculatorActivity {
             return e.getMessage();
         } catch (Exception e) {
             // Handle all other exceptions
+            System.out.println("1!" + e);
             return "Syntax Fehler";
         }
     }
@@ -206,10 +211,11 @@ public class CalculatorActivity {
 
     /**
      * This method tokenizes a mathematical expression.
-     * Tokenization is the process of breaking up a sequence of strings into pieces such as words, keywords, phrases, symbols and other elements, which are called tokens.
+     * It separates the input string into meaningful units, such as numbers, operators, and parentheses.
+     * The output is a list of tokens in the order they appear in the expression.
      *
      * @param expression The mathematical expression to be tokenized.
-     * @return The tokenized expression as a list of tokens.
+     * @return The list of tokens.
      */
     public static List<String> tokenize(final String expression) {
         // Create a list to store the tokens
@@ -232,13 +238,6 @@ public class CalculatorActivity {
                     currentToken.setLength(0);
                 }
                 tokens.add(Character.toString(c));
-            }
-            // If the character is a space, add the current token to the list (if it's not empty) and clear the current token
-            else if (c == ' ') {
-                if (currentToken.length() > 0) {
-                    tokens.add(currentToken.toString());
-                    currentToken.setLength(0);
-                }
             }
         }
         // If there's a current token left at the end, add it to the list
@@ -384,14 +383,12 @@ public class CalculatorActivity {
     }
 
     /**
-     * This method evaluates a mathematical expression in postfix notation.
-     * It uses a stack to hold the operands and operators. When it encounters a number, it pushes it onto the stack.
-     * When it encounters an operator, it pops the necessary number of operands from the stack, applies the operator, and pushes the result back onto the stack.
-     * At the end of the expression, the stack should contain a single number which is the result of the expression.
+     * This method evaluates a postfix expression.
+     * The input is a list of tokens in the postfix expression.
+     * The output is the result of the expression as a BigDecimal.
      *
-     * @param postfixTokens The mathematical expression in postfix notation.
-     * @return The result of the expression.
-     * @throws IllegalArgumentException If the expression is not valid.
+     * @param postfixTokens The list of tokens in the postfix expression.
+     * @return The result of the expression as a BigDecimal.
      */
     public static BigDecimal evaluatePostfix(final List<String> postfixTokens) {
         // Create a stack to store numbers
@@ -429,11 +426,13 @@ public class CalculatorActivity {
             }
             // If the token is neither a number nor an operator, throw an exception
             else {
+                System.out.println("token is neither a number nor an operator");
                 throw new IllegalArgumentException("Syntax Fehler");
             }
         }
         // If there is more than one number in the stack at the end, throw an exception
         if (stack.size() != 1) {
+            System.out.println("Stacksize != 1");
             throw new IllegalArgumentException("Syntax Fehler");
         }
 
@@ -441,13 +440,14 @@ public class CalculatorActivity {
         return stack.get(0);
     }
 
+
     /**
      * This method converts an infix expression to a postfix expression.
-     * Infix notation is the common arithmetic and logical formula notation, in which operators are written infix-style between the operands they act on.
-     * Postfix notation is an unambiguous way of writing an arithmetic expression without parentheses. It is defined so that if "X" is an operator and "A" and "B" are operands, then "A X B" in infix notation becomes "A B X" in postfix notation.
+     * The input is a list of tokens in the infix expression.
+     * The output is a list of tokens in the postfix expression.
      *
-     * @param infixTokens The infix expression as a list of tokens.
-     * @return The postfix expression as a list of tokens.
+     * @param infixTokens The list of tokens in the infix expression.
+     * @return The list of tokens in the postfix expression.
      */
     public static List<String> infixToPostfix(final List<String> infixTokens) {
         // Create a list to store the postfix tokens
@@ -562,7 +562,7 @@ public class CalculatorActivity {
 
             // If the operator is not recognized, throw an exception
             default:
-                throw new IllegalArgumentException("Unknown operator: " + operator);
+                throw new IllegalArgumentException("Unbekannter Operator: " + operator);
         }
     }
 }
