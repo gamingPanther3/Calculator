@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 /**
  * CalculatorActivity
  * @author Max Lemberg
- * @version 1.6.4
- * @date 19.12.2023
+ * @version 1.7.0
+ * @date 23.12.2023
  */
 
 public class CalculatorActivity {
@@ -110,7 +110,6 @@ public class CalculatorActivity {
             return e.getMessage();
         } catch (Exception e) {
             // Handle all other exceptions
-            System.out.println("1!" + e);
             return "Syntax Fehler";
         }
     }
@@ -213,26 +212,31 @@ public class CalculatorActivity {
      * This method tokenizes a mathematical expression.
      * It separates the input string into meaningful units, such as numbers, operators, and parentheses.
      * The output is a list of tokens in the order they appear in the expression.
+     * It also handles negative numbers and considers a minus sign as part of the number if it appears at the beginning of the expression or after an opening parenthesis.
+     * Debugging information, such as the input expression and the list of tokens, is printed to the console.
      *
-     * @param expression The mathematical expression to be tokenized.
-     * @return The list of tokens.
+     * @param expression The mathematical expression to be tokenized. It should not contain any spaces.
+     * @return The list of tokens. Each token is either a number, an operator, or a parenthesis.
      */
     public static List<String> tokenize(final String expression) {
-        // Create a list to store the tokens
-        final List<String> tokens = new ArrayList<>();
-        // Create a StringBuilder to build the current token
-        final StringBuilder currentToken = new StringBuilder();
+        // Debugging: Print input expression
+        System.out.println("Input Expression: " + expression);
 
-        // Iterate through each character in the expression
-        for (int i = 0; i < expression.length(); i++) {
-            final char c = expression.charAt(i);
+        // Replace all spaces in the expression
+        String expressionWithoutSpaces = expression.replaceAll("\\s+", "");
 
-            // If the character is a digit, a decimal point, or a negative sign not preceded by a digit, append it to the current token
-            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || !Character.isDigit(expression.charAt(i - 1))))) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder currentToken = new StringBuilder();
+
+        for (int i = 0; i < expressionWithoutSpaces.length(); i++) {
+            char c = expressionWithoutSpaces.charAt(i);
+
+            // If the character is a digit, a dot, or a minus sign (if it's at the beginning or after an opening parenthesis),
+            // add it to the current token
+            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || expressionWithoutSpaces.charAt(i - 1) == '('))) {
                 currentToken.append(c);
-            }
-            // If the character is an operator or a parenthesis, add the current token to the list (if it's not empty), clear the current token, and add the operator or parenthesis to the list
-            else if (c == '+' || c == '*' || c == '/' || c == '-' || c == '^' || c == '√' || c == '(' || c == ')' || c == '!') {
+            } else {
+                // If the character is an operator, add the current token to the list and reset the current token
                 if (currentToken.length() > 0) {
                     tokens.add(currentToken.toString());
                     currentToken.setLength(0);
@@ -240,12 +244,15 @@ public class CalculatorActivity {
                 tokens.add(Character.toString(c));
             }
         }
-        // If there's a current token left at the end, add it to the list
+
+        // Add the last token if it exists
         if (currentToken.length() > 0) {
             tokens.add(currentToken.toString());
         }
 
-        // Return the list of tokens
+        // Debugging: Print tokens
+        System.out.println("Tokens: " + tokens);
+
         return tokens;
     }
 
@@ -394,8 +401,14 @@ public class CalculatorActivity {
         // Create a stack to store numbers
         final List<BigDecimal> stack = new ArrayList<>();
 
+        // Debugging: Print size of postfixTokens
+        System.out.println("PostfixTokens size: " + postfixTokens.size());
+
         // Iterate through each token in the postfix list
         for (final String token : postfixTokens) {
+            // Debugging: Print current token
+            System.out.println("Token: " + token);
+
             // If the token is a number, add it to the stack
             if (isNumber(token)) {
                 stack.add(new BigDecimal(token));
@@ -404,32 +417,39 @@ public class CalculatorActivity {
             else if (isOperator(token)) {
                 // If the operator is "!", apply the operator to only one number
                 if (token.equals("!")) {
+                    if (stack.size() < 1) {
+                        System.out.println("Not enough operands for !");
+                        throw new IllegalArgumentException("Syntax Fehler");
+                    }
                     final BigDecimal operand1 = stack.remove(stack.size() - 1);
                     final BigDecimal result = applyOperator(operand1, BigDecimal.ZERO, token);
                     stack.add(result);
                 }
                 // If the operator is not "!", apply the operator to two numbers
                 else {
+                    if (stack.size() < 2) {
+                        System.out.println("Not enough operands for " + token);
+                        throw new IllegalArgumentException("Syntax Fehler");
+                    }
                     final BigDecimal operand2 = stack.remove(stack.size() - 1);
-                    // If the operator is not ROOT, apply the operator to two numbers
-                    if (!token.equals(ROOT)) {
-                        final BigDecimal operand1 = stack.remove(stack.size() - 1);
-                        final BigDecimal result = applyOperator(operand1, operand2, token);
-                        stack.add(result);
-                    }
-                    // If the operator is ROOT, apply the operator to only one number
-                    else {
-                        final BigDecimal operand2SquareRoot = applyOperator(BigDecimal.ZERO, operand2, ROOT);
-                        stack.add(operand2SquareRoot);
-                    }
+                    final BigDecimal operand1 = stack.remove(stack.size() - 1);
+                    final BigDecimal result = applyOperator(operand1, operand2, token);
+                    stack.add(result);
                 }
             }
             // If the token is neither a number nor an operator, throw an exception
             else {
-                System.out.println("token is neither a number nor an operator");
+                System.out.println("Token is neither a number nor an operator");
                 throw new IllegalArgumentException("Syntax Fehler");
             }
+
+            // Debugging: Print current stack
+            System.out.println("Stack: " + stack);
         }
+
+        // Debugging: Print size of final stack
+        System.out.println("Final Stack size: " + stack.size());
+
         // If there is more than one number in the stack at the end, throw an exception
         if (stack.size() != 1) {
             System.out.println("Stacksize != 1");
@@ -439,7 +459,6 @@ public class CalculatorActivity {
         // Return the result
         return stack.get(0);
     }
-
 
     /**
      * This method converts an infix expression to a postfix expression.
@@ -454,6 +473,9 @@ public class CalculatorActivity {
         final List<String> postfixTokens = new ArrayList<>();
         // Create a stack to store the operators
         final Stack<String> stack = new Stack<>();
+
+        // Debugging: Print postfixTokens
+        System.out.println("Postfix Tokens: " + postfixTokens);
 
         // Iterate through each token in the infix list
         for (final String token : infixTokens) {
