@@ -68,26 +68,31 @@ public class CalculatorActivity {
 
             // If the expression is in scientific notation, convert it to decimal notation
             if (isScientificNotation(trim)) {
+                // (Assuming these methods are defined elsewhere in your code)
                 mainActivity.setIsNotation(true);
                 String result = convertScientificToDecimal(trim);
                 return removeNonNumeric(result);
             }
 
-            // Tokenize the expression and evaluate it
+            // Tokenize the expression and handle negative exponent in division
             final String expression = convertScientificToDecimal(trim);
             final List<String> tokens = tokenize(expression);
 
             for (int i = 0; i < tokens.size() - 1; i++) {
-                // If the expression contains division by zero, return "Infinity"
                 try {
-                    if (tokens.get(i).equals("/") && Double.parseDouble(tokens.get(i + 1)) <= 0) {
-                        return "Unendlich";
+                    if (tokens.get(i).equals("/") && tokens.get(i + 1).equals("-")) {
+                        // Handle negative exponent in division
+                        tokens.remove(i + 1);
+                        tokens.add(i + 1, "NEG_EXPONENT");
                     }
                 } catch (Exception e) {
                     // do nothing
                 }
             }
+
+            // Evaluate the expression and handle exceptions
             final BigDecimal result = evaluate(tokens);
+
             double resultDouble = result.doubleValue();
             // If the result is too large, return "Wert zu groß"
             if (Double.isInfinite(resultDouble)) {
@@ -231,9 +236,9 @@ public class CalculatorActivity {
         for (int i = 0; i < expressionWithoutSpaces.length(); i++) {
             char c = expressionWithoutSpaces.charAt(i);
 
-            // If the character is a digit, period, or minus sign (if it's at the beginning or after an opening parenthesis),
+            // If the character is a digit, period, or minus sign (if it's at the beginning, after an opening parenthesis, or after an operator),
             // add it to the current token
-            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || expressionWithoutSpaces.charAt(i - 1) == '('))) {
+            if (Character.isDigit(c) || c == '.' || (c == '-' && (i == 0 || expressionWithoutSpaces.charAt(i - 1) == '(' || isOperator(String.valueOf(expressionWithoutSpaces.charAt(i - 1)))))) {
                 currentToken.append(c);
             } else {
                 // If the character is an operator, add the current token to the list and reset the current token
@@ -373,8 +378,19 @@ public class CalculatorActivity {
         double baseDouble = base.doubleValue();
         double exponentDouble = exponent.doubleValue();
 
-        // Calculate the power of the base to the exponent
-        double resultDouble = Math.pow(baseDouble, exponentDouble);
+        // Check if the base is zero and the exponent is negative
+        if (baseDouble == 0 && exponentDouble < 0) {
+            throw new ArithmeticException("Kein Teilen durch 0");
+        }
+
+        // Check if the base is negative and the exponent is an integer
+        double resultDouble;
+        if (baseDouble < 0 && exponentDouble == (int) exponentDouble) {
+            baseDouble = -baseDouble;
+            resultDouble = -Math.pow(baseDouble, exponentDouble);
+        } else {
+            resultDouble = Math.pow(baseDouble, exponentDouble);
+        }
 
         // If the result is too large to be represented as a double, throw an exception
         if (Double.isInfinite(resultDouble)) {
