@@ -8,6 +8,9 @@ This calculator can perform the following operations:
 - Exponentiation (^)
 - Square root (√)
 - Factorial (!)
+- Sine (sin)
+- Cosine (cos)
+- Tangent (tan)
 
 The calculator can also handle scientific notation.
 
@@ -19,7 +22,10 @@ The calculator can also handle scientific notation.
 - To square 4, enter `4^2`.
 - To find the square root of 16, enter `√(16)`.
 - To calculate the factorial of 5, enter `5!`.
-
+- For the sine of an angle 25 in a right-angled triangle, enter sin(25).
+- For the cosine of an angle 30, enter cos(30).
+- For the tangent of an angle 35, enter tan(35).
+  
 The calculator automatically converts scientific notation to decimal notation when calculating results.
 
 ## Examples of how to use scientific notation with the calculator:
