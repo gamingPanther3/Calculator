@@ -11,6 +11,10 @@ This calculator can perform the following operations:
 - Sine (sin)
 - Cosine (cos)
 - Tangent (tan)
+- Inverse Sine (sin⁻¹)
+- Inverse Cosine (cos⁻¹)
+- Inverse Tangent (tan⁻¹)
+
 
 The calculator can also handle scientific notation.
 
@@ -25,6 +29,9 @@ The calculator can also handle scientific notation.
 - For the sine of an angle 25 in a right-angled triangle, enter `sin(25).`
 - For the cosine of an angle 30, enter `cos(30)`.
 - For the tangent of an angle 35, enter `tan(35)`.
+- For the inverse sine of a value 0.5, enter `sin⁻¹(0.5)`.
+- For the inverse cosine of a value -1, enter `cos⁻¹(-1)`.
+- For the inverse tangent of a value 1, enter `tan⁻¹(1)`.
   
 The calculator automatically converts scientific notation to decimal notation when calculating results.
 
